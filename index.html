@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>File Share</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <main class="wrap">
+    <header>
+      <div><p class="eyebrow">PUBLIC FILE SHARE</p><h1>Shared files</h1>
+      <p class="muted">Files uploaded here are visible to anyone with access to this page.</p></div>
+      <a class="button" href="/upload">Upload a file</a>
+    </header>
+    <section class="panel">
+      <div class="section-head"><h2>Available files</h2><button id="refresh" class="secondary">Refresh</button></div>
+      <p id="status" class="muted">Loading files…</p>
+      <ul id="files" class="files"></ul>
+    </section>
+    <footer>Public sharing — do not upload private or sensitive files.</footer>
+  </main>
+<script>
+const list = document.querySelector("#files");
+const statusText = document.querySelector("#status");
+async function loadFiles() {
+  statusText.textContent = "Loading files…";
+  list.replaceChildren();
+  try {
+    const response = await fetch("/api/files");
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || "Could not load files");
+    if (!data.files.length) {
+      statusText.textContent = "No files have been uploaded yet.";
+      return;
+    }
+    statusText.textContent = `${data.files.length} file(s)`;
+    for (const file of data.files) {
+      const li = document.createElement("li");
+      const info = document.createElement("div");
+      const name = document.createElement("strong");
+      name.textContent = file.pathname.split("/").pop();
+      const size = document.createElement("small");
+      size.textContent = `${(file.size / 1024).toFixed(1)} KB`;
+      const link = document.createElement("a");
+      link.href = file.url;
+      link.textContent = "Download";
+      link.className = "download";
+      link.target = "_blank";
+      link.rel = "noopener";
+      info.append(name, size);
+      li.append(info, link);
+      list.append(li);
+    }
+  } catch (error) {
+    statusText.textContent = error.message;
+  }
+}
+document.querySelector("#refresh").addEventListener("click", loadFiles);
+loadFiles();
+</script>
+</body>
+</html>

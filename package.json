@@ -1,0 +1,9 @@
+{
+  "name": "public-vercel-file-share",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": { "dev": "vercel dev" },
+  "dependencies": { "@vercel/blob": "^2.0.0" },
+  "devDependencies": { "vercel": "^50.0.0" }
+}

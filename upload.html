@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Upload — File Share</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <main class="wrap narrow">
+    <a class="back" href="/">← Back to files</a>
+    <p class="eyebrow">PUBLIC FILE SHARE</p>
+    <h1>Upload a file</h1>
+    <p class="muted">Choose a file to make it available to anyone who can access this site.</p>
+    <section class="panel">
+      <input id="file" type="file">
+      <button id="send" class="button full">Upload file</button>
+      <p id="status" class="muted" role="status"></p>
+    </section>
+  </main>
+<script>
+const input = document.querySelector("#file");
+const button = document.querySelector("#send");
+const statusText = document.querySelector("#status");
+button.addEventListener("click", async () => {
+  const file = input.files[0];
+  if (!file) { statusText.textContent = "Choose a file first."; return; }
+  if (file.size > 4 * 1024 * 1024) {
+    statusText.textContent = "This deployment is limited to 4 MB per upload. Use a larger-file upload service for bigger files.";
+    return;
+  }
+  button.disabled = true;
+  statusText.textContent = "Uploading…";
+  try {
+    const response = await fetch("/api/upload", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/octet-stream",
+        "X-File-Name": encodeURIComponent(file.name)
+      },
+      body: file
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || "Upload failed");
+    statusText.textContent = "Upload complete.";
+    const link = document.createElement("a");
+    link.href = data.url;
+    link.textContent = "Open uploaded file";
+    link.className = "download";
+    statusText.append(document.createElement("br"), link);
+  } catch (error) {
+    statusText.textContent = error.message;
+  } finally {
+    button.disabled = false;
+  }
+});
+</script>
+</body>
+</html>
